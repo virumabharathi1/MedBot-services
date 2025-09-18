@@ -145,7 +145,7 @@ const bookSandboxAppointment = async ({ providerId, departmentId, patientId, rea
 // =====================
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
-  const user = doctors.find(u => u.username === username && u.password === password);
+  const user = doctors.find(u => u.username?.toLowerCase() === username?.toLowerCase() && u.password === password);
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
   res.json({
     name: user.name,
