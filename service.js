@@ -28,6 +28,69 @@ const config = {
 let demoAppointments = [];
 let doctors = [];
 
+async function sendSampleOrderEmail(details) {
+  const { customerEmail, customerName, productCode, productName, productType, shippingAddress } = details;
+
+  // You should use your actual company email here
+  const companyEmail = 'virumab6@gmail.com';
+
+  console.log(`Attempting to send Sample Order email to: ${customerEmail}`);
+
+  const mailOptions = {
+    from: `"Wilsonart Samples" <${companyEmail}>`,
+    to: customerEmail, // customer email
+    subject: `Your Sample Order Confirmation - ${productName}`,
+    html: `
+        <div style="font-family: 'Arial', sans-serif; color: #333; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            
+            <div style="background-color: #004d40; padding: 20px; text-align: center; color: white;">
+                <h1 style="margin: 0; font-size: 24px;">Sample Order Confirmed!</h1>
+            </div>
+            
+            <div style="padding: 30px;">
+                <p style="font-size: 16px;">Hi <strong>${customerName}</strong>,</p>
+                <p style="font-size: 16px;">Thank you for your interest! Your sample request has been successfully placed:</p>
+
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #ddd;">
+                    <tr>
+                        <td style="padding: 12px; font-weight: bold; width: 150px; background-color: #f9f9f9;">Product Name</td>
+                        <td style="padding: 12px;">${productName}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; font-weight: bold; background-color: #f9f9f9;">Product Code</td>
+                        <td style="padding: 12px;">${productCode}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; font-weight: bold; background-color: #f9f9f9;">Type</td>
+                        <td style="padding: 12px;">${productType}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; font-weight: bold; background-color: #f9f9f9;">Shipping To</td>
+                        <td style="padding: 12px;">${shippingAddress}</td>
+                    </tr>
+                </table>
+
+                <p style="font-size: 16px; margin-top: 20px;">Your sample will be processed and shipped shortly. You will receive a separate email once it ships.</p>
+                <p style="font-size: 16px; margin-top: 20px;">Thank you,<br><strong>The Wilsonart Team</strong></p>
+            </div>
+
+            <div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 12px; color: #777;">
+                © ${new Date().getFullYear()} Wilsonart. All rights reserved.
+            </div>
+        </div>
+        `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Sample Order Email sent successfully to ${customerEmail}`);
+  } catch (err) {
+    console.error('Error sending sample order email:', err);
+    throw new Error('Failed to send confirmation email.');
+  }
+}
+
+
 // =====================
 // Helper: Get Athena token
 // =====================
@@ -58,6 +121,61 @@ app.get('/api/providers', (req, res) => {
   }));
 
   res.json({ providers: providersData });
+});
+app.post('/api/order/sample', async (req, res) => {
+  const {
+    productCode,
+    productName,
+    type: productType, // Renaming 'type' to 'productType' for clarity
+    customerName,
+    customerEmail,
+    customerPhone,
+    shippingAddress
+  } = req.body;
+
+  // 1. Basic Validation (add more as needed)
+  if (!productCode || !customerEmail || !shippingAddress) {
+    return res.status(400).json({ success: false, error: 'Missing product details, email, or shipping address.' });
+  }
+
+  try {
+    // 2. Insert Order into Database (Example using your existing DB pool)
+    // NOTE: You would need a table like 'sample_orders' for this in a real application.
+    // Since I don't know your schema, I will skip the DB call to prevent errors,
+    // but this is where it would go:
+    /*
+    const orderResult = await pool.query(
+        `INSERT INTO sample_orders (code, name, type, customer_name, email, phone, address, created_at) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING id`,
+        [productCode, productName, productType, customerName, customerEmail, customerPhone, shippingAddress]
+    );
+    const orderId = orderResult.rows[0].id;
+    console.log(`Sample Order recorded in DB with ID: ${orderId}`);
+    */
+
+    // 3. Send Confirmation Email
+    await sendSampleOrderEmail({
+      customerName: customerName,
+      customerEmail: customerEmail,
+      productCode: productCode,
+      productName: productName,
+      productType: productType,
+      shippingAddress: shippingAddress
+    });
+
+    // 4. Send Success Response
+    res.json({
+      success: true,
+      message: 'Sample order placed successfully and confirmation email sent.',
+      product: { productCode, productName, productType }
+    });
+
+  } catch (err) {
+    console.error('Error processing sample order:', err);
+    // Ensure error is a string for the JSON response
+    const errorMessage = err.message || 'Internal server error during order processing.';
+    res.status(500).json({ success: false, error: errorMessage });
+  }
 });
 // =====================
 // Fetch providers and assign demo credentials
