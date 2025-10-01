@@ -11,11 +11,23 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 const transporter = nodemailer.createTransport({
-    service: process?.env?.EMAIL_SERVICE || 'gmail',
-    auth: {
-        user: process?.env?.EMAIL_USER || 'virumab6@gmail.com',
-        pass: process?.env?.EMAIL_PASS || 'amnc dpgb uyon ntvh',
-    },
+  // 1. Explicitly define the Host
+  host: 'smtp.gmail.com',
+
+  // 2. Explicitly define the SMTPS Port
+  port: 465,
+
+  // 3. MUST be true for port 465 (Secure Socket Layer)
+  secure: true,
+
+  // 4. Authentication details are read from Environment Variables
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+
+  // 5. Optional: Increase timeout to prevent immediate failure
+  timeout: 30000
 });
 const config = {
   athena: {
