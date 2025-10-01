@@ -43,7 +43,7 @@ async function sendSampleOrderEmail(details) {
   console.log(`Attempting to send Sample Order email to: ${customerEmail}`);
 
   const mailOptions = {
-    from: `"Wilsonart Samples" <${companyEmail}>`,
+    from: `"Wilsonart Samples"`,
     to: customerEmail, // customer email
     subject: `Your Sample Order Confirmation - ${productName}`,
     html: `
