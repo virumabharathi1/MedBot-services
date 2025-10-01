@@ -4,13 +4,19 @@ import qs from 'qs';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import sendAppointmentConfirmation from './mailer.js';
-
+import nodemailer from 'nodemailer';
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-
+const transporter = nodemailer.createTransport({
+    service: process.env.EMAIL_SERVICE,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
 const config = {
   athena: {
     clientId: process.env.ATHENA_CLIENT_ID,
