@@ -11,10 +11,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 const transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE,
+    service: process?.env?.EMAIL_SERVICE || 'gmail',
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process?.env?.EMAIL_USER || 'virumab6@gmail.com',
+        pass: process?.env?.EMAIL_PASS || 'amnc dpgb uyon ntvh',
     },
 });
 const config = {
